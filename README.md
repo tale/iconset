@@ -6,7 +6,7 @@ It is still in its early stages and as time goes on, more customization schemes 
 
 ## Installing
 In the future, I plan to set this up on brew, but for now the following command should work:<br/>
-`curl https://github.com/tale/iconset/releases/download/v0.1-alpha.1/iconset -o /usr/local/bin/iconset`<br/>
+`curl https://github.com/tale/iconset/releases/download/v0.1-alpha.1/iconset -Lo /usr/local/bin/iconset`<br/>
 `sudo chmod +x /usr/local/bin/iconset`<br/>
 
 ## Usage
