@@ -33,11 +33,15 @@ extension Iconset {
             for item in items {
                 if item.contains(".icns") {
                     let application = item.replacingOccurrences(of: ".icns", with: ".app")
+                    let applicationPath = "\(options.applicationsPath)/\(application)"
+                    
+                    guard FileManager.default.fileExists(atPath: applicationPath) else {
+                        return
+                    }
                     
                     print("\(item) –> \(application)")
-                    
                     let image = NSImage(contentsOfFile: "\(iconsPath)/\(item)")
-                    NSWorkspace.shared.setIcon(image, forFile: "\(options.applicationsPath)/\(application)", options: .excludeQuickDrawElementsIconCreationOption)
+                    NSWorkspace.shared.setIcon(image, forFile: applicationPath, options: .excludeQuickDrawElementsIconCreationOption)
                 }
             }
             
