@@ -16,11 +16,11 @@ Coming soon, for now just reference them by running `iconset --help`
 - Specifying an icon and an application file to theme<br/>
 - Specifying the directory where Applications are stored (defaults to `/Applications`)<br/>
 - Specifying a folder of `.icns` files who's names match their respective icons<br/>
+- Reverting an icon by supplying a folder of `.icns` or the path to a `.app`<br/>
 
 ## Coming Soon
 - Advanced manifest file which lets you map `.icns` files to `.app` files directly<br/>
 - Recursive directory search for applications and icons<br/>
-- Better permission handling for root<br/>
 - Accompanying status bar app for macOS with automation and easy config UI<br/>
 
 ## Building
