@@ -14,7 +14,7 @@ import ArgumentParser
 struct Iconset: ParsableCommand {
 	static var configuration = CommandConfiguration(
 		abstract: "A nifty command line tool to manage macOS icons",
-		subcommands: [Iconset.IconFolder.self, Iconset.SingleIcon.self]
+		subcommands: [Iconset.Folder.self, Iconset.Single.self]
 	)
 	
 	struct Options: ParsableArguments {

@@ -13,7 +13,7 @@ import ArgumentParser
 
 @available(macOS 10.15.4, *)
 extension Iconset {
-	struct SingleIcon: ParsableCommand {
+	struct Single: ParsableCommand {
 		static var configuration = CommandConfiguration(
 			commandName: "single",
 			abstract: "Set the icon of a '.app' file using a '.icns' file"
