@@ -2,26 +2,15 @@
 //  main.swift
 //  Iconset
 //
-//  Created by Aarnav Tale on 6/19/21.
+//  Created by Aarnav Tale on 11/11/21.
+//  Copyright (c) 2021 Aerum LLC. All rights reserved.
 //
 
 import Foundation
 
-Iconset.main()
-
-public func purgeCache() throws {
-    let iterator = FileManager.default.enumerator(atPath: "/private/var/folders")
-    while let object = iterator!.nextObject() {
-        if let file = object as? String, file.contains("com.apple.iconservices") || file.contains("com.apple.dock.iconcache") {
-            try FileManager.default.removeItem(atPath: "/private/var/folders/\(file)")
-        }
-    }
-    
-    try FileManager.default.removeItem(atPath: "/Library/Caches/com.apple.iconservices.store")
-    
-    let task = Process()
-    task.launchPath = "/usr/bin/killall"
-    task.arguments = ["Dock"]
-    task.launch()
-    task.waitUntilExit()
+if #available(macOS 10.15.4, *) {
+	Iconset.main()
+} else {
+	Log.error("iconset is only supported on macOS Catalina (10.15.4) or greater")
+	exit(1)
 }
