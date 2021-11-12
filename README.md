@@ -6,7 +6,7 @@ It is still in its early stages and as time goes on, more customization schemes 
 
 ## Installing
 In the future, I plan to set this up on brew, but for now the following command should work:<br/>
-`curl https://github.com/tale/iconset/releases/download/v0.1-alpha.1/iconset -Lo /usr/local/bin/iconset`<br/>
+`curl https://github.com/tale/iconset/releases/download/v0.2-beta/iconset -Lo /usr/local/bin/iconset`<br/>
 `sudo chmod +x /usr/local/bin/iconset`<br/>
 
 ## Usage
@@ -24,6 +24,7 @@ Coming soon, for now just reference them by running `iconset --help`
 - Accompanying status bar app for macOS with automation and easy config UI<br/>
 
 ## Building
-Building is simple when using Xcode (however this requires Swift 5.5 and Xcode 13 beta).<br/>
-If you encounter issues with Xcode, run `swift build` in the project root to build a debug binary.<br/>
-For release binaries, instead run `swift build -c release --arch arm64 --arch x86_64` in the project root<br/>
+The project is an SPM Package that requires Xcode 13 and Swift 5.5.<br/>
+Run `swift build --disable-sandbox` in the project root to build a debug binary.<br/>
+For release binaries, instead run `swift build -c release --arch arm64 --arch x86_64 --disable-sandbox` in the project root<br/>
+Currently, the in-app Xcode builds are sandbox enforced, potentially breaking `iconset`'s access to certain files.<br/>
