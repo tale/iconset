@@ -14,7 +14,7 @@ import ArgumentParser
 struct Iconset: ParsableCommand {
 	static var configuration = CommandConfiguration(
 		abstract: "A nifty command line tool to manage macOS icons",
-		subcommands: [Iconset.Folder.self, Iconset.Single.self]
+		subcommands: [Iconset.Folder.self, Iconset.Single.self, Iconset.Revert.self]
 	)
 	
 	struct Options: ParsableArguments {
@@ -42,6 +42,7 @@ struct Iconset: ParsableCommand {
 		let input = Pipe()
 		sudo.standardInput = input
 		sudo.standardOutput = nil
+		sudo.standardError = nil
 		sudo.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
 		sudo.arguments = [
 			"-S",
@@ -54,12 +55,23 @@ struct Iconset: ParsableCommand {
 		try input.fileHandleForWriting.close()
 		sudo.waitUntilExit()
 		
+		guard sudo.terminationStatus == 0 else {
+			Log.error("Failed to purge icon cache")
+			throw ExitCode.failure
+		}
+		
 		let task = Process()
 		task.standardOutput = nil
 		task.launchPath = "/usr/bin/killall"
 		task.arguments = ["Dock"]
 		try task.run()
+		task.waitUntilExit()
 		
-		Log.info("Cache purged successfully. Applications may not show their new icon until they are launched")
+		guard task.terminationStatus == 0 else {
+			Log.error("Failed to restart Dock")
+			throw ExitCode.failure
+		}
+		
+		Log.info("Cache purged successfully. \(ck.dim.on("New icons may not show till the Application is launched"))")
 	}
 }
