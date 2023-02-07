@@ -16,25 +16,33 @@ extension Iconset {
 	struct Revert: ParsableCommand {
 		static var configuration = CommandConfiguration(
 			commandName: "revert",
-			abstract: "Revert a custom icon by supplying a path to a '.app'"
+			abstract: "Revert a custom icon by supplying a path to a '.app' file or directory"
 		)
-		
-		@Argument(help: "A path to a '.app' file")
+
+		@Argument(help: "A path to a '.app' file or directory")
 		var path: String
-		
+
 		mutating func run() throws {
-			guard FileManager.default.fileExists(atPath: path) else {
+			var isDirectory: ObjCBool = true
+
+			guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
 				Log.error("The supplied path does not exist")
 				throw ExitCode.failure
 			}
-			
+
+			if isDirectory.boolValue {
+				Log.info("The supplied path is a directory")
+			} else {
+				Log.info("The supplied path is a file")
+			}
+
 			let url = URL(fileURLWithPath: path)
-			
+
 			guard url.hasDirectoryPath else {
 				Log.error("Invalid path supplied")
 				throw ExitCode.failure
 			}
-			
+
 			// This extended attribute is used to override icons
 			removexattr(url.path, "com.apple.FinderInfo", 0)
 			try FileManager.default.removeItem(atPath: url.appendingPathComponent("Icon\r").path)
