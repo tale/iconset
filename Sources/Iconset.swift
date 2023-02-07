@@ -72,6 +72,6 @@ struct Iconset: ParsableCommand {
 			throw ExitCode.failure
 		}
 		
-		Log.info("Cache purged successfully. \(ck.dim.on("New icons may not show till the Application is launched"))")
+		Log.info("Cache purged successfully. \(ck.dim.on("Updated icons will show on Application relaunch"))")
 	}
 }
