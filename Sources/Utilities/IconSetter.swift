@@ -28,7 +28,34 @@ extension SetAttributeError: LocalizedError {
 	}
 }
 
+// Converts the file Data to a "classic macOS resource"
+// The format of a resource is something like this:
+// data 'icns' (-16455) {
+//	$"<8 bytes of hex data>"
+//	...
+//	$"<8 bytes of hex data>"
+// };
+
+extension Data {
+	func asClassicResource() -> Data? {
+		let hexFormatted = self.hexFormatted.wrapAdjacent(with: "$").joined(separator: "\n")
+		return [ "data 'icns' (-16455) {", hexFormatted, "};" ].joined(separator: "\n").data(using: .utf8)
+	}
+
+	var hexFormatted: [String] {
+		return self.map { String(format: "%02lx", $0).uppercased() }
+	}
+}
+
 extension Array {
+	func wrapAdjacent(with prefix: String) -> [String] {
+		return stride(from: 0, to: count, by: 2).map {
+			"\(self[$0])\(self[$0 + 1])"
+		}.chunked(into: 8).map {
+			"\(prefix)\"\($0.joined(separator: " "))\""
+		}
+	}
+
 	func chunked(into size: Int) -> [[Element]] {
 		return stride(from: 0, to: count, by: size).map {
 			Array(self[$0 ..< Swift.min($0 + size, count)])
@@ -38,71 +65,26 @@ extension Array {
 
 class IconSetter {
 	private let iconPath: URL
-	private let userIconPath: URL
 	private let resourcePath: URL
 
 	init(from iconPath: URL) {
 		let randomID = UUID().uuidString
 		let tempDirectory = FileManager.default.temporaryDirectory
 
-		var tempIconPath = tempDirectory.appendingPathComponent(randomID)
-		tempIconPath.appendPathExtension("icns")
+		var resourcePath = tempDirectory.appendingPathComponent(randomID)
+		resourcePath.appendPathExtension("rsrc")
 
-		var tempResourcePath = tempDirectory.appendingPathComponent(randomID)
-		tempResourcePath.appendPathExtension("rsrc")
-
-		self.iconPath = tempIconPath
-		self.userIconPath = iconPath
-		self.resourcePath = tempResourcePath
+		self.iconPath = iconPath
+		self.resourcePath = resourcePath
 	}
 
 	func generateResource() throws {
-		try FileManager.default.copyItem(at: self.userIconPath, to: self.iconPath)
-		Log.debug("Copied file to \(self.userIconPath)")
-
-		let image = NSImage(contentsOf: self.iconPath)
-		NSWorkspace.shared.setIcon(image, forFile: self.iconPath.path)
-		Log.debug("Set icon for \(self.userIconPath) to \(self.iconPath) (via NSWorkspace)")
-
-		// Create the resource file so we can get a valid file handle
-		guard FileManager.default.createFile(atPath: self.resourcePath.path, contents: nil, attributes: nil) else {
-			// Handle this soon
+		let data = try Data(contentsOf: self.iconPath)
+		guard let resource = data.asClassicResource() else {
 			throw NSError()
 		}
 
-		defer {
-			try? FileManager.default.removeItem(at: self.iconPath)
-			Log.debug("Removed temporary icon file at \(self.iconPath)")
-		}
-
-		Log.debug("Created resource file at \(self.resourcePath)")
-		let fileHandle = try FileHandle(forWritingTo: self.resourcePath)
-
-		// let data = try Data(contentsOf: self.userIconPath)
-		// let hexdump = data.map { String(format: "%04lx", $0) }
-		// 	.chunked(into: 8)
-		// 	.map({ "\t$\"\($0.joined(separator: " "))\"" })
-		// 	.joined(separator: "\n")
-
-		// guard let resource = [
-		// 	"data 'icns' (-16455) {",
-		// 	hexdump,
-		// 	"};"
-		// ].joined(separator: "\n").data(using: .utf8) else {
-		// 	throw NSError()
-		// }
-
-		// try resource.write(to: self.resourcePath)
-
-		// Run the file through DeRez to generate the resource file
-		let derezTask = Process()
-		derezTask.standardOutput = fileHandle
-		derezTask.launchPath = "/usr/bin/DeRez"
-		derezTask.arguments = ["-only", "icns", self.iconPath.path]
-		try derezTask.run()
-
-		derezTask.waitUntilExit()
-		Log.debug("DeRez exited with status \(derezTask.terminationStatus) for \(self.userIconPath)")
+		try resource.write(to: self.resourcePath)
 	}
 
 	func updateApplication(_ applicationPath: URL) throws {
@@ -137,10 +119,10 @@ class IconSetter {
 		let task = Process()
 		task.standardOutput = nil
 		task.launchPath = "/usr/bin/Rez"
-		task.arguments = ["-append", resourcePath.path, "-o", iconPath.path]
+		task.arguments = ["-append", self.resourcePath.path, "-o", iconPath.path]
 		try task.run()
 
 		task.waitUntilExit()
-		Log.debug("Rez exited with status \(task.terminationStatus) for \(self.userIconPath)")
+		Log.debug("Rez exited with status \(task.terminationStatus) for \(self.iconPath)")
 	}
 }
