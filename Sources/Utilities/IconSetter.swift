@@ -5,6 +5,7 @@
 //  Created by Aarnav Tale on 2/7/23.
 //
 
+import AppKit
 import Foundation
 import ArgumentParser
 
@@ -27,6 +28,14 @@ extension SetAttributeError: LocalizedError {
 	}
 }
 
+extension Array {
+	func chunked(into size: Int) -> [[Element]] {
+		return stride(from: 0, to: count, by: size).map {
+			Array(self[$0 ..< Swift.min($0 + size, count)])
+		}
+	}
+}
+
 class IconSetter {
 	private let iconPath: URL
 	private let userIconPath: URL
@@ -45,23 +54,15 @@ class IconSetter {
 		self.iconPath = tempIconPath
 		self.userIconPath = iconPath
 		self.resourcePath = tempResourcePath
-
-		Log.debug("Copying file \(iconPath)")
 	}
 
 	func generateResource() throws {
 		try FileManager.default.copyItem(at: self.userIconPath, to: self.iconPath)
 		Log.debug("Copied file to \(self.userIconPath)")
 
-		// Run the file through SIPS to set an icon of itself
-		let sipsTask = Process()
-		sipsTask.standardOutput = nil
-		sipsTask.launchPath = "/usr/bin/sips"
-		sipsTask.arguments = ["-i", self.iconPath.path]
-		try sipsTask.run()
-
-		sipsTask.waitUntilExit()
-		Log.debug("Sips exited with status \(sipsTask.terminationStatus) for \(self.userIconPath)")
+		let image = NSImage(contentsOf: self.iconPath)
+		NSWorkspace.shared.setIcon(image, forFile: self.iconPath.path)
+		Log.debug("Set icon for \(self.userIconPath) to \(self.iconPath) (via NSWorkspace)")
 
 		// Create the resource file so we can get a valid file handle
 		guard FileManager.default.createFile(atPath: self.resourcePath.path, contents: nil, attributes: nil) else {
@@ -76,6 +77,22 @@ class IconSetter {
 
 		Log.debug("Created resource file at \(self.resourcePath)")
 		let fileHandle = try FileHandle(forWritingTo: self.resourcePath)
+
+		// let data = try Data(contentsOf: self.userIconPath)
+		// let hexdump = data.map { String(format: "%04lx", $0) }
+		// 	.chunked(into: 8)
+		// 	.map({ "\t$\"\($0.joined(separator: " "))\"" })
+		// 	.joined(separator: "\n")
+
+		// guard let resource = [
+		// 	"data 'icns' (-16455) {",
+		// 	hexdump,
+		// 	"};"
+		// ].joined(separator: "\n").data(using: .utf8) else {
+		// 	throw NSError()
+		// }
+
+		// try resource.write(to: self.resourcePath)
 
 		// Run the file through DeRez to generate the resource file
 		let derezTask = Process()
