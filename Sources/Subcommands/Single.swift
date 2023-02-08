@@ -47,7 +47,9 @@ extension Iconset {
 			try setter.updateApplication(applicationURL)
 
 			Log.info("\(URL(fileURLWithPath: iconPath).lastPathComponent) \(ck.dim.on(URL(fileURLWithPath: appPath).lastPathComponent))")
-			try Iconset.purge()
+
+			let decacher = DeCacher()
+			try decacher.nuke()
 		}
 	}
 }

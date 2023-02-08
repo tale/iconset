@@ -46,7 +46,9 @@ extension Iconset {
 			// This extended attribute is used to override icons
 			removexattr(url.path, "com.apple.FinderInfo", 0)
 			try FileManager.default.removeItem(atPath: url.appendingPathComponent("Icon\r").path)
-			try Iconset.purge()
+
+			let decacher = DeCacher()
+			try decacher.nuke()
 		}
 	}
 }

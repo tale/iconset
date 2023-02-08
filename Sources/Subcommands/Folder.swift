@@ -75,7 +75,8 @@ extension Iconset {
 				Log.error("The following icons failed to set: \(array)")
 			}
 
-			try Iconset.purge()
+			let decacher = DeCacher()
+			try decacher.nuke()
 		}
 	}
 }
