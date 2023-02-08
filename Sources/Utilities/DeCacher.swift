@@ -68,6 +68,18 @@ class DeCacher {
 			Log.error("Failed to purge icon cache")
 			throw ExitCode.failure
 		}
+
+		let task = Process()
+		task.standardOutput = nil
+		task.launchPath = "/usr/bin/sudo"
+		task.arguments = ["-k"]
+		try task.run()
+		task.waitUntilExit()
+
+		if task.terminationStatus != 0 {
+			Log.warn("Failed to invalidate sudo credentials")
+			Log.warn("Try running \(ck.dim.on("sudo -k"))")
+		}
 	}
 
 	private func nukeWithSudo() throws {
