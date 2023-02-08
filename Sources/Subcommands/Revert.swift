@@ -23,23 +23,20 @@ extension Iconset {
 		var path: String
 
 		mutating func run() throws {
-			var isDirectory: ObjCBool = true
-
-			guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) else {
+			guard FileManager.default.fileExists(atPath: path) else {
 				Log.error("The supplied path does not exist")
 				throw ExitCode.failure
-			}
-
-			if isDirectory.boolValue {
-				Log.info("The supplied path is a directory")
-			} else {
-				Log.info("The supplied path is a file")
 			}
 
 			let url = URL(fileURLWithPath: path)
 
 			guard url.hasDirectoryPath else {
 				Log.error("Invalid path supplied")
+				throw ExitCode.failure
+			}
+
+			if getxattr(url.path, "com.apple.FinderInfo", nil, 0, 0, 0) != 0 {
+				Log.error("No custom icon found \(ck.dim.on("(or the icon is already a default icon)"))")
 				throw ExitCode.failure
 			}
 
