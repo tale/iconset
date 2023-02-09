@@ -1,0 +1,22 @@
+{
+	"configurations": [
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug Iconset",
+			"program": "${workspaceFolder:iconset}/.build/debug/Iconset",
+			"args": [],
+			"cwd": "${workspaceFolder:iconset}",
+			"preLaunchTask": "swift: Build Debug Iconset"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Release Iconset",
+			"program": "${workspaceFolder:iconset}/.build/release/Iconset",
+			"args": [],
+			"cwd": "${workspaceFolder:iconset}",
+			"preLaunchTask": "swift: Build Release Iconset"
+		}
+	]
+}
