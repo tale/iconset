@@ -9,19 +9,22 @@ import AppKit
 import Foundation
 import ArgumentParser
 
-enum SetAttributeError: Error {
+enum SetterError: Error {
 	case fileNotFound
 	case noPermission
+	case failedNSImage
 	case xattrGeneric
 }
 
-extension SetAttributeError: LocalizedError {
+extension SetterError: LocalizedError {
 	public var errorDescription: String? {
 		switch self {
 		case .fileNotFound:
 			return "File not found"
 		case .noPermission:
 			return "Missing permissions to set attribute"
+		case .failedNSImage:
+			return "Failed to create image from file"
 		case .xattrGeneric:
 			return "Unknown xattr error"
 		}
@@ -79,50 +82,61 @@ class IconSetter {
 	}
 
 	func generateResource() throws {
-		let data = try Data(contentsOf: self.iconPath)
-		guard let resource = data.asClassicResource() else {
-			throw NSError()
-		}
+		// let data = try Data(contentsOf: self.iconPath)
+		// guard let resource = data.asClassicResource() else {
+		// 	throw NSError()
+		// }
 
-		try resource.write(to: self.resourcePath)
+		// try resource.write(to: self.resourcePath)
 	}
 
 	func updateApplication(_ applicationPath: URL) throws {
 		// Set the FinderInfo attribute to 0x00000000000000040000000000000000
 		// This enables the kHasCustomIcon bit on the com.apple.FinderInfo attribute
-		let data: [CChar] = [
-			00, 00, 00, 00, 00, 00, 00, 00, 04, 00, 00, 00, 00, 00, 00, 00,
-			00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00
-		]
+		// let data: [CChar] = [
+		// 	00, 00, 00, 00, 00, 00, 00, 00, 04, 00, 00, 00, 00, 00, 00, 00,
+		// 	00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00
+		// ]
 
-		// Set the extended attribute using xattr
-		let status = setxattr(applicationPath.path, "com.apple.FinderInfo", data, 32, 0, 0)
-		guard status == 0 else {
-			switch errno {
-			case EPERM, EACCES:
-				throw SetAttributeError.noPermission
-			case ENOENT:
-				throw SetAttributeError.fileNotFound
-			default:
-				throw SetAttributeError.xattrGeneric
-			}
+		// // Set the extended attribute using xattr
+		// let status = setxattr(applicationPath.path, "com.apple.FinderInfo", data, 32, 0, 0)
+		// guard status == 0 else {
+		// 	switch errno {
+		// 	case EPERM, EACCES:
+		// 		throw SetAttributeError.noPermission
+		// 	case ENOENT:
+		// 		throw SetAttributeError.fileNotFound
+		// 	default:
+		// 		throw SetAttributeError.xattrGeneric
+		// 	}
+		// }
+
+		// defer {
+		// 	try? FileManager.default.removeItem(at: self.resourcePath)
+		// 	Log.debug("Removed temporary resource file at \(self.resourcePath)")
+		// }
+
+		// // Get the expected path of the icon file in the Application
+		// let iconPath = applicationPath.appendingPathComponent("Icon\r")
+
+		// let task = Process()
+		// task.standardOutput = nil
+		// task.launchPath = "/usr/bin/Rez"
+		// task.arguments = ["-append", self.resourcePath.path, "-o", iconPath.path]
+		// try task.run()
+
+		// task.waitUntilExit()
+		// Log.debug("Rez exited with status \(task.terminationStatus) for \(self.iconPath)")
+
+		guard let image = NSImage(contentsOf: self.iconPath) else {
+			throw SetterError.failedNSImage
 		}
 
-		defer {
-			try? FileManager.default.removeItem(at: self.resourcePath)
-			Log.debug("Removed temporary resource file at \(self.resourcePath)")
+		// An option to suppress generation of the QuickDraw format icon representations that are used in macOS 10.0 through macOS 10.4.
+		let status = NSWorkspace.shared.setIcon(image, forFile: applicationPath.path, options: .excludeQuickDrawElementsIconCreationOption)
+
+		guard status else {
+			throw SetterError.noPermission
 		}
-
-		// Get the expected path of the icon file in the Application
-		let iconPath = applicationPath.appendingPathComponent("Icon\r")
-
-		let task = Process()
-		task.standardOutput = nil
-		task.launchPath = "/usr/bin/Rez"
-		task.arguments = ["-append", self.resourcePath.path, "-o", iconPath.path]
-		try task.run()
-
-		task.waitUntilExit()
-		Log.debug("Rez exited with status \(task.terminationStatus) for \(self.iconPath)")
 	}
 }
