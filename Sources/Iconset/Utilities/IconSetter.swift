@@ -8,6 +8,7 @@
 import AppKit
 import Foundation
 import ArgumentParser
+import Carbon
 
 enum SetterError: Error {
 	case fileNotFound
