@@ -68,6 +68,18 @@ extension Array {
 }
 
 class IconSetter {
+	class func getHomePath(from iconsPath: String) -> String {
+		if getuid() == 0 {
+			let user = iconsPath.components(separatedBy: "/")
+
+			if user.count > 2 && user[1] == "Users" {
+				return "/Users/\(user[2])"
+			}
+		}
+
+		return NSHomeDirectory()
+	}
+
 	private let iconPath: URL
 	// private let resourcePath: URL
 

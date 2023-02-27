@@ -34,19 +34,22 @@ extension Iconset {
 				throw ExitCode.failure
 			}
 
-			guard FileManager.default.fileExists(atPath: appPath) else {
+			// Replace the ~ with the user's home directory we found in iconsPath
+			let realPath = appPath.replacingOccurrences(of: "~", with: IconSetter.getHomePath(from: iconPath))
+
+			guard FileManager.default.fileExists(atPath: realPath) else {
 				Log.error("Specified application does not exist")
 				throw ExitCode.failure
 			}
 
-			let applicationURL = URL(fileURLWithPath: appPath)
+			let applicationURL = URL(fileURLWithPath: realPath)
 			let iconURL = URL(fileURLWithPath: iconPath)
 
 			let setter = IconSetter(from: iconURL)
 			try setter.generateResource()
 			try setter.updateApplication(applicationURL)
 
-			Log.info("\(URL(fileURLWithPath: iconPath).lastPathComponent) \(ck.dim.on(URL(fileURLWithPath: appPath).lastPathComponent))")
+			Log.info("\(URL(fileURLWithPath: iconPath).lastPathComponent) \(ck.dim.on(URL(fileURLWithPath: realPath).lastPathComponent))")
 
 			let decacher = DeCacher()
 			try decacher.nuke()

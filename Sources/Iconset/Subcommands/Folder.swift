@@ -81,7 +81,7 @@ extension Iconset {
 		func findApplicationPath(_ application: String) -> URL? {
 			for applicationPath in options.applicationPaths {
 				// Replace the ~ with the user's home directory we found in iconsPath
-				let realPath = applicationPath.replacingOccurrences(of: "~", with: getHomePath())
+				let realPath = applicationPath.replacingOccurrences(of: "~", with: IconSetter.getHomePath(from: iconsPath))
 				guard let enumerator = FileManager.default.enumerator(atPath: realPath) else {
 					continue
 				}
@@ -98,18 +98,6 @@ extension Iconset {
 			}
 
 			return nil
-		}
-
-		func getHomePath() -> String {
-			if getuid() == 0 {
-				let user = iconsPath.components(separatedBy: "/")
-
-				if user.count > 2 && user[1] == "Users" {
-					return "/Users/\(user[2])"
-				}
-			}
-
-			return NSHomeDirectory()
 		}
 	}
 }
