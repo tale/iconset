@@ -31,8 +31,7 @@ extension Iconset {
 			var unmatched = [String]()
 			var completed = [[String]]()
 
-			DispatchQueue.concurrentPerform(iterations: items.count) {
-				let item = items[$0]
+			for item in items {
 				if item.contains(".icns") {
 					let application = item.replacingOccurrences(of: ".icns", with: ".app")
 					let applicationPath = URL(fileURLWithPath: "\(options.applicationsPath)/\(application)")
@@ -40,19 +39,21 @@ extension Iconset {
 
 					guard FileManager.default.fileExists(atPath: applicationPath.path) else {
 						unmatched.append(item)
-						return
+						continue
 					}
 
 					let setter = IconSetter(from: iconPath)
 
 					do {
 						try setter.generateResource()
+						print(iconPath.path)
 						try setter.updateApplication(applicationPath)
 					} catch {
 						if !unmatched.contains(item) {
 							failed.append([item: error.localizedDescription])
 						}
-						return
+
+						continue
 					}
 
 					completed.append([item, application])
