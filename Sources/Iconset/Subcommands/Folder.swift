@@ -31,11 +31,22 @@ extension Iconset {
 			var unmatched = [String]()
 			var completed = [[String]]()
 
+			let applicationPaths = options.applicationPaths.split(separator: ",").map {
+				String($0).trimmingCharacters(in: .whitespacesAndNewlines)
+			}
+
+			var applications = [String]()
+			DispatchQueue.concurrentPerform(iterations: applicationPaths.count) {
+				let path = applicationPaths[$0]
+				let recurse = Recurse(directory: path).recurse()
+				applications.append(contentsOf: recurse)
+			}
+
 			DispatchQueue.concurrentPerform(iterations: items.count) {
 				let item = items[$0]
 				if item.contains(".icns") {
 					let application = item.replacingOccurrences(of: ".icns", with: ".app")
-					let applicationPath = URL(fileURLWithPath: "\(options.applicationsPath)/\(application)")
+					let applicationPath = URL(fileURLWithPath: "\(applications.first { $0.contains(application) } ?? "")")
 					let iconPath = URL(fileURLWithPath: "\(iconsPath)/\(item)")
 
 					guard FileManager.default.fileExists(atPath: applicationPath.path) else {
