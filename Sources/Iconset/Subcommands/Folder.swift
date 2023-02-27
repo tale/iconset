@@ -34,10 +34,9 @@ extension Iconset {
 			for item in items {
 				if item.contains(".icns") {
 					let application = item.replacingOccurrences(of: ".icns", with: ".app")
-					let applicationPath = URL(fileURLWithPath: "\(options.applicationsPath)/\(application)")
 					let iconPath = URL(fileURLWithPath: "\(iconsPath)/\(item)")
 
-					guard FileManager.default.fileExists(atPath: applicationPath.path) else {
+					guard let applicationPath = findApplicationPath(application) else {
 						unmatched.append(item)
 						continue
 					}
@@ -46,7 +45,6 @@ extension Iconset {
 
 					do {
 						try setter.generateResource()
-						print(iconPath.path)
 						try setter.updateApplication(applicationPath)
 					} catch {
 						if !unmatched.contains(item) {
@@ -78,6 +76,40 @@ extension Iconset {
 
 			let decacher = DeCacher()
 			try decacher.nuke()
+		}
+
+		func findApplicationPath(_ application: String) -> URL? {
+			for applicationPath in options.applicationPaths {
+				// Replace the ~ with the user's home directory we found in iconsPath
+				let realPath = applicationPath.replacingOccurrences(of: "~", with: getHomePath())
+				guard let enumerator = FileManager.default.enumerator(atPath: realPath) else {
+					continue
+				}
+
+				while let element = enumerator.nextObject() as? String {
+					if element.contains(application) {
+						return URL(fileURLWithPath: "\(realPath)/\(element)")
+					}
+
+					if element.contains(".app") {
+						enumerator.skipDescendants()
+					}
+				}
+			}
+
+			return nil
+		}
+
+		func getHomePath() -> String {
+			if getuid() == 0 {
+				let user = iconsPath.components(separatedBy: "/")
+
+				if user.count > 2 && user[1] == "Users" {
+					return "/Users/\(user[2])"
+				}
+			}
+
+			return NSHomeDirectory()
 		}
 	}
 }

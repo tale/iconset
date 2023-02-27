@@ -19,7 +19,7 @@ struct Iconset: ParsableCommand {
 	)
 
 	struct Options: ParsableArguments {
-		@Option(name: .shortAndLong, help: "The path to the applications to theme")
-		var applicationsPath = "/Applications"
+		@Option(name: .shortAndLong, help: "The path to the applications to theme, comma separated")
+		var applicationPaths = ["/Applications", "~/Applications"]
 	}
 }
