@@ -69,17 +69,17 @@ extension Array {
 
 class IconSetter {
 	private let iconPath: URL
-	private let resourcePath: URL
+	// private let resourcePath: URL
 
 	init(from iconPath: URL) {
-		let randomID = UUID().uuidString
-		let tempDirectory = FileManager.default.temporaryDirectory
+		// let randomID = UUID().uuidString
+		// let tempDirectory = FileManager.default.temporaryDirectory
 
-		var resourcePath = tempDirectory.appendingPathComponent(randomID)
-		resourcePath.appendPathExtension("rsrc")
+		// var resourcePath = tempDirectory.appendingPathComponent(randomID)
+		// resourcePath.appendPathExtension("rsrc")
 
 		self.iconPath = iconPath
-		self.resourcePath = resourcePath
+		// self.resourcePath = resourcePath
 	}
 
 	func generateResource() throws {
